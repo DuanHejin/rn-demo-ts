@@ -1,7 +1,13 @@
 import * as React from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, ScrollView } from 'react-native';
+import HeaderComponent from './Header';
+import NavComponent from './Nav';
+import PanicPurchaseComponent from './PanicPurchase';
+import BoomTodayComponent from './BoomToday';
+import { RootStackNavigation } from '@/navigator/StackNavigtor';
 
 export interface HomeProps {
+  navigation: RootStackNavigation
 }
 
 export interface HomeState {
@@ -15,11 +21,16 @@ export default class HomeComponent extends React.Component<HomeProps, HomeState>
   }
 
   public render() {
+    const { navigation } = this.props;
     return (
-      <View style={styles.container}>
-         <Text>Home Component</Text>
-         <Text>Home Component</Text>
-      </View>
+      <ScrollView>
+        <View style={styles.container}>
+          <HeaderComponent></HeaderComponent>
+          <NavComponent></NavComponent>
+          <PanicPurchaseComponent></PanicPurchaseComponent>
+          <BoomTodayComponent navigation={navigation}></BoomTodayComponent>
+        </View>
+      </ScrollView>
     );
   }
 }
@@ -27,8 +38,6 @@ export default class HomeComponent extends React.Component<HomeProps, HomeState>
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: "#cccccc"
   }
 });

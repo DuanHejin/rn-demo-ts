@@ -1,18 +1,17 @@
 import * as React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, Classification, Cart, PersonalCenter } from '@/pages/index';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { TabNavigationState } from '@react-navigation/native';
+import { TabNavigationState, RouteProp } from '@react-navigation/native';
+import { RootStackParamList, RootStackNavigation } from './StackNavigtor';
 
 const Tab = createBottomTabNavigator();
 
-export type Route = {
-  name: string,
+type Route = RouteProp<RootStackParamList, "Main"> & {
   state: TabNavigationState
-};
+}
 
 export interface TabNavigatorProps {
-  navigation: StackNavigationProp<any>,
+  navigation: RootStackNavigation,
   route: Route
 }
 
