@@ -1,14 +1,40 @@
 import * as React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, Classification, Cart, PersonalCenter } from '@/pages/index';
+import { Home, Classification, Cart, Tools, PersonalCenter } from '@/pages/index';
 import { TabNavigationState, RouteProp } from '@react-navigation/native';
 import { RootStackParamList, RootStackNavigation } from './StackNavigtor';
+
+export type TabParamList = {
+  Home: {},
+  Classification: {},
+  Cart: {},
+  Tools: {},
+  PersonalCenter: {},
+}
 
 const Tab = createBottomTabNavigator();
 
 type Route = RouteProp<RootStackParamList, "Main"> & {
   state: TabNavigationState
 }
+
+interface Screen {
+  name: keyof TabParamList;
+  component: React.ComponentType<any>,
+  options: any;
+}
+
+const TabSreens: Screen[] = [{
+  name: 'Home', component: Home, options: { tabBarLabel: "Home" }
+}, {
+  name: 'Classification', component: Classification, options: { tabBarLabel: "Classi" }
+}, {
+  name: 'Cart', component: Cart, options: { tabBarLabel: "Cart" }
+}, {
+  name: 'Tools', component: Tools, options: { tabBarLabel: 'Tools' }
+}, {
+  name: 'PersonalCenter', component: PersonalCenter, options: { tabBarLabel: 'PersonalCenter' }
+}];
 
 export interface TabNavigatorProps {
   navigation: RootStackNavigation,
@@ -46,34 +72,16 @@ export default class TabNavigatorComponent extends React.Component<TabNavigatorP
           activeTintColor: '#ff6600',
         }}
       >
-        <Tab.Screen
-          name="Home"
-          component={Home}
-          options={{
-            tabBarLabel: "Home"
-          }}
-        />
-        <Tab.Screen
-          name="Classification"
-          component={Classification}
-          options={{
-            tabBarLabel: "Classi"
-          }}
-        />
-        <Tab.Screen
-          name="Cart"
-          component={Cart}
-          options={{
-            tabBarLabel: "Cart"
-          }}
-        />
-        <Tab.Screen
-          name="PersonalCenter"
-          component={PersonalCenter}
-          options={{
-            tabBarLabel: "PersonalCenter"
-          }}
-        />
+        {
+          TabSreens.map(({ name, component, options }, index: number) => (
+            <Tab.Screen
+              key={index}
+              name={name}
+              options={options}
+              component={component}
+            />
+          ))
+        }
       </Tab.Navigator>
     );
   }

@@ -26,7 +26,6 @@ export default class CardFooterComponent extends React.Component<CardFooterProps
       originalPrice,
       rightBottomMemo
     } = this.props;
-    console.log('leftBottomIcon :>> ', leftBottomIcon);
     return (
       <View style={styles.wrap}>
         <View style={styles.leftArea}>
