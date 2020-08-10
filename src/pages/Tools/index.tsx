@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
-import { Touchable } from '@/components/common/Touchable';
+import { Touchable } from '@/components/Common/Touchable';
 import { RootStackParamList, RootStackNavigation } from '@/navigator/StackNavigtor';
 
 interface Entry {
@@ -55,10 +55,10 @@ export default class Tools extends React.Component<ToolsProps, ToolsState> {
 const styles = StyleSheet.create({
   wrap: {
     flex: 1,
-    padding: 15,
-    backgroundColor: '#fff',
+    padding: 10,
   },
   btnWrap: {
-    paddingVertical: 10,
+    padding: 10,
+    backgroundColor: '#fff',
   },
 });
