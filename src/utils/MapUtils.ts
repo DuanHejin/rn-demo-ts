@@ -7,8 +7,13 @@ import {
   addLocationListener,
   start,
   stop,
+  Location,
+  ReGeocode,
+  Position,
+  _options,
 } from "react-native-amap-geolocation";
 import ToastShow from '@/utils/ToastShow';
+import _ from 'lodash';
 
 /** 坐标信息 */
 export interface Coords {
@@ -17,6 +22,10 @@ export interface Coords {
   /** 经度 */
   longitude: number;
   /** 经度 */
+  address?: string;
+}
+
+export interface AMapLocation extends Location {
   address: string;
 }
 
@@ -89,24 +98,49 @@ const getLocation = async (): Promise<Coords> => {
     if (Platform.OS === 'android') {
 
     } else if (Platform.OS === 'ios') {
-      Geolocation.getCurrentPosition((position) => {
-        // console.log('position :>> ', JSON.stringify(position, undefined, 2));
-        const { location, coords }: { location: any, coords: Coordinates } = position;
-        const { latitude, longitude } = coords;
+      // Geolocation.getCurrentPosition((position) => {
+      //   // console.log('position :>> ', JSON.stringify(position, undefined, 2));
+      //   const { location, coords }: { location: any, coords: Coordinates } = position;
+      //   const { latitude, longitude } = coords;
+      //   const address = location.address;
+      //   const res = { latitude, longitude, address };
+
+      //   console.log('当前坐标和街道地址 :>> ', res);
+      //   resolve(res);
+      // }, (err) => {
+      //   console.log(err);
+      //   showLocationErrDialog();
+      // });
+
+
+
+      var listener = addLocationListener(function (location) {
+        if (location.errorCode) {
+          stop();
+          return listener.remove();
+        }
+
+        if (_options.locatingWithReGeocode && typeof location.address !== "string") {
+          return;
+        }
+
+        console.log('location :>> ', location);
+        const { latitude, longitude } = location;
         const address = location.address;
         const res = { latitude, longitude, address };
-
         console.log('当前坐标和街道地址 :>> ', res);
         resolve(res);
-      }, (err) => {
-        console.log(err);
-        showLocationErrDialog();
+        stop();
+        return listener.remove();
       });
+      start();
     }
   });
 };
 
 let intervalId = 0;
+let watchMap: any[] = [];
+let watchId = 0;
 /**
  * 开始循环定位
  * @param callback 
@@ -130,28 +164,78 @@ export const startLoopPosition = async (callback?: (res: Coords) => void, interv
       setPausesLocationUpdatesAutomatically(false);
       // 设置允许后台定位
       setAllowsBackgroundLocationUpdates(true);
+      let count = 0;
+
+      // intervalId = setInterval(() => {
+      //   Geolocation.getCurrentPosition((position) => {
+      //     // console.log('position :>> ', JSON.stringify(position, undefined, 2));
+      //     const { location, coords }: { location: any, coords: Coordinates } = position;
+      //     const { latitude, longitude } = coords;
+      //     const address = location.address;
+      //     const res = { latitude, longitude, address };
+
+      //     console.log('当前坐标和街道地址 :>> ', res);
+      //     if (typeof callback === 'function') {
+      //       callback(res);
+      //     }
+      //   }, (err) => {
+      //     console.log(err);
+      //     showLocationErrDialog();
+      //   });
+      // }, intervalTime || 3000);
+
+      // const positionList: Coords[] = [];
+      // intervalId = setInterval(() => {
+      //   if (positionList.length > 0) {
+      //     console.log('positionList size',
+      //       positionList.length,
+      //       'latest item in positionList',
+      //       positionList[positionList.length - 1])
+      //   }
+      // }, intervalTime || 3000);
+
+      // const successCallback = (location: Location & ReGeocode) => {
+      //   if (location.errorCode) {
+      //     console.log(location.errorInfo);
+      //   } else {
+      //     console.log('循环拿数据', ++count)
+      //     const coords = {
+      //       latitude: location.latitude,
+      //       longitude: location.longitude,
+      //       address: location.address,
+      //     }
+      //     positionList.push(coords);
+      //   }
+      // }
+
+      // watchMap[++watchId] = addLocationListener(successCallback);
+      // start();
+      // return watchId;
+
+      const timer = intervalTime || 3000;
 
       intervalId = setInterval(() => {
-        // Geolocation.getCurrentPosition((position) => {
-        //   // console.log('position :>> ', JSON.stringify(position, undefined, 2));
-        //   const { location, coords }: { location: any, coords: Coordinates } = position;
-        //   const { latitude, longitude } = coords;
-        //   const address = location.address;
-        //   const res = { latitude, longitude, address };
+        if (positionList.length > 0) {
+          console.log('positionList size',
+            positionList.length,
+            'latest item in positionList',
+            positionList[positionList.length - 1])
+        }
+      }, timer);
 
-        //   console.log('当前坐标和街道地址 :>> ', res);
-        //   if (typeof callback === 'function') {
-        //     callback(res);
-        //   }
-        // }, (err) => {
-        //   console.log(err);
-        //   showLocationErrDialog();
-        // });
-        console.log('循环拿数据')
-      }, intervalTime || 3000);
+      const positionList: Coords[] = [];
+      const successCallback = ({ location }: Position) => {
+        const coords = {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          address: location.address,
+        }
+        positionList.push(coords);
+      }
 
+      watchId = Geolocation.watchPosition(_.throttle(successCallback, timer, { leading: true, trailing: false }));
     } catch (error) {
-      console.log('开始循环定位 ------- error :>> ', error);
+      console.log('循环定位失败 ------- error :>> ', error);
     }
   }
 };
@@ -161,6 +245,17 @@ export const startLoopPosition = async (callback?: (res: Coords) => void, interv
  */
 export const stopLoopPosition = () => {
   console.log('关闭循环定位 -------  ')
+  // stop();
+
+  // var listener = watchMap[watchId];
+  // if (listener) {
+  //   listener.remove();
+  // }
+
+  stop();
+  Geolocation.clearWatch(watchId);
+
+
   if (intervalId) {
     clearInterval(intervalId);
   }
