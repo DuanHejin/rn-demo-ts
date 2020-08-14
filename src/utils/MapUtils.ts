@@ -4,13 +4,10 @@ import {
   init, Geolocation, Coordinates, setLocatingWithReGeocode,
   setPausesLocationUpdatesAutomatically,
   setAllowsBackgroundLocationUpdates,
-  addLocationListener,
-  start,
   stop,
   Location,
-  ReGeocode,
-  Position,
-  _options,
+  getLocationOnce,
+  setDesiredAccuracy,
 } from "react-native-amap-geolocation";
 import ToastShow from '@/utils/ToastShow';
 import _ from 'lodash';
@@ -73,8 +70,9 @@ const initAMap = async () => {
     android: "043b24fe18785f33c491705ffe5b6935" // FIXUP
   });
   if (Platform.OS === 'ios') {
-    // 设置逆地理位置编码
-    setLocatingWithReGeocode(true);
+    // 设置IOS精度
+    setDesiredAccuracy(100);
+
   }
 }
 
@@ -86,7 +84,7 @@ const showLocationErrDialog = () => {
 /**
  * 获取当前经纬度
  */
-const getLocation = async (): Promise<Coords> => {
+const getLocation = async (needRegeo: boolean = false): Promise<Coords> => {
   return new Promise(async (resolve, reject) => {
     // 检查是否有权限
     const isGranted = await isPermissionGranted();
@@ -98,55 +96,29 @@ const getLocation = async (): Promise<Coords> => {
     if (Platform.OS === 'android') {
 
     } else if (Platform.OS === 'ios') {
-      // Geolocation.getCurrentPosition((position) => {
-      //   // console.log('position :>> ', JSON.stringify(position, undefined, 2));
-      //   const { location, coords }: { location: any, coords: Coordinates } = position;
-      //   const { latitude, longitude } = coords;
-      //   const address = location.address;
-      //   const res = { latitude, longitude, address };
 
-      //   console.log('当前坐标和街道地址 :>> ', res);
-      //   resolve(res);
-      // }, (err) => {
-      //   console.log(err);
-      //   showLocationErrDialog();
-      // });
-
-
-
-      var listener = addLocationListener(function (location) {
-        if (location.errorCode) {
-          stop();
-          return listener.remove();
-        }
-
-        if (_options.locatingWithReGeocode && typeof location.address !== "string") {
-          return;
-        }
-
-        console.log('location :>> ', location);
+      const callback = (location: any) => {
         const { latitude, longitude } = location;
         const address = location.address;
         const res = { latitude, longitude, address };
-        console.log('当前坐标和街道地址 :>> ', res);
+
+        console.log('------------- 当前坐标和街道地址 :>> ', res);
         resolve(res);
-        stop();
-        return listener.remove();
-      });
-      start();
+      }
+
+      getLocationOnce({ regeo: needRegeo }).then(callback);
     }
   });
 };
 
 let intervalId = 0;
-let watchMap: any[] = [];
 let watchId = 0;
 /**
  * 开始循环定位
  * @param callback 
  * @param intervalTime 
  */
-export const startLoopPosition = async (callback?: (res: Coords) => void, intervalTime?: number) => {
+export const startLoopPosition = async (needRegeo: boolean = true, callback?: (res: Coords) => void, intervalTime?: number) => {
   // 检查是否有权限
   const isGranted = await isPermissionGranted();
   if (!isGranted) {
@@ -160,71 +132,26 @@ export const startLoopPosition = async (callback?: (res: Coords) => void, interv
     console.log('开始循环定位 -------  ')
     try {
 
+      setLocatingWithReGeocode(needRegeo);
       // 设置不允许系统自动暂停定位
       setPausesLocationUpdatesAutomatically(false);
       // 设置允许后台定位
       setAllowsBackgroundLocationUpdates(true);
-      let count = 0;
 
-      // intervalId = setInterval(() => {
-      //   Geolocation.getCurrentPosition((position) => {
-      //     // console.log('position :>> ', JSON.stringify(position, undefined, 2));
-      //     const { location, coords }: { location: any, coords: Coordinates } = position;
-      //     const { latitude, longitude } = coords;
-      //     const address = location.address;
-      //     const res = { latitude, longitude, address };
-
-      //     console.log('当前坐标和街道地址 :>> ', res);
-      //     if (typeof callback === 'function') {
-      //       callback(res);
-      //     }
-      //   }, (err) => {
-      //     console.log(err);
-      //     showLocationErrDialog();
-      //   });
-      // }, intervalTime || 3000);
-
-      // const positionList: Coords[] = [];
-      // intervalId = setInterval(() => {
-      //   if (positionList.length > 0) {
-      //     console.log('positionList size',
-      //       positionList.length,
-      //       'latest item in positionList',
-      //       positionList[positionList.length - 1])
-      //   }
-      // }, intervalTime || 3000);
-
-      // const successCallback = (location: Location & ReGeocode) => {
-      //   if (location.errorCode) {
-      //     console.log(location.errorInfo);
-      //   } else {
-      //     console.log('循环拿数据', ++count)
-      //     const coords = {
-      //       latitude: location.latitude,
-      //       longitude: location.longitude,
-      //       address: location.address,
-      //     }
-      //     positionList.push(coords);
-      //   }
-      // }
-
-      // watchMap[++watchId] = addLocationListener(successCallback);
-      // start();
-      // return watchId;
-
-      const timer = intervalTime || 3000;
-
+      const timer = intervalTime || 30000;
       intervalId = setInterval(() => {
         if (positionList.length > 0) {
-          console.log('positionList size',
-            positionList.length,
-            'latest item in positionList',
-            positionList[positionList.length - 1])
+          const latestCoords = positionList[positionList.length - 1];
+          console.log('------------- positionList size', positionList.length, 'latest item in positionList', latestCoords);
+
+          if (typeof callback === 'function') {
+            callback(latestCoords);
+          }
         }
       }, timer);
 
       const positionList: Coords[] = [];
-      const successCallback = ({ location }: Position) => {
+      const successCallback = ({ location }: any) => {
         const coords = {
           latitude: location.latitude,
           longitude: location.longitude,
@@ -245,21 +172,17 @@ export const startLoopPosition = async (callback?: (res: Coords) => void, interv
  */
 export const stopLoopPosition = () => {
   console.log('关闭循环定位 -------  ')
+
   // stop();
-
-  // var listener = watchMap[watchId];
-  // if (listener) {
-  //   listener.remove();
-  // }
-
-  stop();
   Geolocation.clearWatch(watchId);
-
+  
 
   if (intervalId) {
     clearInterval(intervalId);
+    intervalId = 0;
   }
   if (Platform.OS === 'ios') {
+    setLocatingWithReGeocode(false);
     // 设置允许系统自动暂停定位
     setPausesLocationUpdatesAutomatically(true);
     // 设置不允许后台定位
@@ -270,7 +193,7 @@ export const stopLoopPosition = () => {
 
 const MapUtils = {
   initAMap,
-  getLocation,
+  getLocationOnce: getLocation,
   startLoopPosition,
   stopLoopPosition,
 }

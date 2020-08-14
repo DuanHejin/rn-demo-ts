@@ -23,9 +23,14 @@ export default class AMap extends React.Component<AMapProps, AMapState> {
   };
 
 
-  getLocation = async () => {
-    const coord = await MapUtils.getLocation();
+  getLocation = (needRegeo = false) => async () => {
+    const coord = await MapUtils.getLocationOnce(needRegeo);
     this.setState({ coord });
+  };
+
+  watchLocation = (needRegeo = false) => () => {
+    startLoopPosition(needRegeo, (coord) => { this.setState({ coord }); }, 3000);
+
   };
 
   public render() {
@@ -33,9 +38,11 @@ export default class AMap extends React.Component<AMapProps, AMapState> {
     return (
       <View style={styles.wrap}>
         <View style={styles.actionWrap}>
-          <Button onPress={this.getLocation}><Text>获取当前坐标</Text></Button>
-          <Button onPress={() => {startLoopPosition()}}><Text>开启循环定位</Text></Button>
-          <Button onPress={() => {stopLoopPosition()}}><Text>关闭循环定位</Text></Button>
+          <Button onPress={this.getLocation()}><Text>获取当前坐标</Text></Button>
+          <Button onPress={this.getLocation(true)}><Text>获取当前坐标(Regeo)</Text></Button>
+          <Button onPress={this.watchLocation(false)}><Text>开启循环定位</Text></Button>
+          <Button onPress={this.watchLocation(true)}><Text>开启循环定位(Regeo)</Text></Button>
+          <Button onPress={() => { stopLoopPosition() }}><Text>关闭循环定位</Text></Button>
         </View>
 
         <View style={styles.content}>

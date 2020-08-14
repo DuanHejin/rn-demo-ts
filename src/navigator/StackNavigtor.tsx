@@ -54,7 +54,7 @@ export default class StackNavigatoyComponent extends React.Component<StackNaviga
   public render() {
     return (
       <Stack.Navigator
-        initialRouteName='AMap'>
+        initialRouteName='Main'>
         {
           StackSreens.map(({ name, component, options }, index: number) => (
             <Stack.Screen
