@@ -5,6 +5,8 @@ import { Login } from '@/pages/index';
 import TabNavigator from './TabNavigator';
 import ItemDetailComponent from '../pages/Home/ItemDetail';
 import AMap from '@/pages/Map/AMap';
+import { Platform, StatusBar, StyleSheet } from 'react-native';
+import GPSLocation from '@/pages/Map/GPSLocation';
 
 export type RootStackParamList = {
   Login: {},
@@ -15,6 +17,8 @@ export type RootStackParamList = {
     id: string,
   },
   AMap: {
+  },
+  GPSLocation: {
   },
 }
 
@@ -36,6 +40,8 @@ const StackSreens: Screen[] = [{
   name: 'ItemDetail', component: ItemDetailComponent, options: { headerTitle: '商品详情' }
 }, {
   name: 'AMap', component: AMap, options: { headerTitle: '高德地图' }
+}, {
+  name: 'GPSLocation', component: GPSLocation, options: { headerTitle: 'GPS定位' }
 }];
 
 export interface StackNavigatoyProps {
@@ -54,6 +60,22 @@ export default class StackNavigatoyComponent extends React.Component<StackNaviga
   public render() {
     return (
       <Stack.Navigator
+        screenOptions={{
+          headerTitleAlign: "center",
+          // ...Platform.select({
+          //   android: {
+          //     headerStatusBarHeight: StatusBar.currentHeight,
+          //   },
+          // }),
+          headerStyle: {
+            ...Platform.select({
+              android: {
+                elevation: 0,
+                borderBottomWidth: StyleSheet.hairlineWidth
+              }
+            })
+          }
+        }}
         initialRouteName='Main'>
         {
           StackSreens.map(({ name, component, options }, index: number) => (

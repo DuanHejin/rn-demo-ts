@@ -52,8 +52,14 @@ export default class TabNavigatorComponent extends React.Component<TabNavigatorP
   }
 
   getHeaderTitle = (route: Route) => {
-    const { state: { index, routeNames } } = route;
-    return routeNames ? routeNames[index] : "Home";
+    // console.log('route :>> ', route);
+    const { state } = route;
+    if (state) {
+      const { index, routeNames } = state;
+      return routeNames ? routeNames[index] : "Home";
+    } else {
+      return 'Home'
+    }
   }
 
   componentDidUpdate = () => {
@@ -67,7 +73,7 @@ export default class TabNavigatorComponent extends React.Component<TabNavigatorP
   public render() {
     return (
       <Tab.Navigator
-        initialRouteName="Home"
+        initialRouteName="Tools"
         tabBarOptions={{
           activeTintColor: '#ff6600',
         }}

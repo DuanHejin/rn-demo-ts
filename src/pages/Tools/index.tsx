@@ -26,6 +26,9 @@ export default class Tools extends React.Component<ToolsProps, ToolsState> {
   entries: Entry[] = [{
     path: 'AMap',
     label: '高德地图Demo',
+  }, {
+    path: 'GPSLocation',
+    label: 'GSP 定位Demo',
   }];
 
   /**
@@ -60,5 +63,7 @@ const styles = StyleSheet.create({
   btnWrap: {
     padding: 10,
     backgroundColor: '#fff',
+    borderRadius: 5,
+    marginBottom: 10,
   },
 });

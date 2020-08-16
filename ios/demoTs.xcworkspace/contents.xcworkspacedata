@@ -2,10 +2,10 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:../../../../Documents/GPX/moonnight_to_suzhou_center_park.gpx">
+      location = "group:../gpx/moonnight_to_suzhou_center_park.gpx">
    </FileRef>
    <FileRef
-      location = "group:../../../../Documents/GPX/one-point.gpx">
+      location = "group:../gpx/one-point.gpx">
    </FileRef>
    <FileRef
       location = "group:demoTs.xcodeproj">
